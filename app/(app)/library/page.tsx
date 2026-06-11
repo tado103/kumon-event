@@ -6,6 +6,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Library, Star, TrendingUp } from "lucide-react";
+import { OWNER_ID } from "@/lib/user";
 import { cn } from "@/lib/utils";
 
 function ScoreBar({ value, max = 5 }: { value: number; max?: number }) {
@@ -30,13 +31,12 @@ export default async function LibraryPage({
   searchParams: Promise<{ purpose?: string; grade?: string; sort?: string }>;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
   const params = await searchParams;
 
   const { data: events } = await supabase
     .from("events")
     .select("*")
-    .eq("user_id", user!.id)
+    .eq("user_id", OWNER_ID)
     .eq("status", "done")
     .order("event_date", { ascending: false });
 

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { CalendarDays, Clock, CheckCircle2, Plus, TrendingUp } from "lucide-react";
+import { OWNER_ID } from "@/lib/user";
 
 function EventCard({ event }: { event: Event }) {
   return (
@@ -49,12 +50,11 @@ function SectionTitle({ icon: Icon, title }: { icon: React.ElementType; title: s
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: events } = await supabase
     .from("events")
     .select("*")
-    .eq("user_id", user!.id)
+    .eq("user_id", OWNER_ID)
     .order("created_at", { ascending: false });
 
   const allEvents = (events ?? []) as Event[];

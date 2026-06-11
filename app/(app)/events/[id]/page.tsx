@@ -2,17 +2,17 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Event } from "@/lib/types";
 import { EventEditor } from "./event-editor";
+import { OWNER_ID } from "@/lib/user";
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   const { data } = await supabase
     .from("events")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user!.id)
+    .eq("user_id", OWNER_ID)
     .single();
 
   if (!data) notFound();

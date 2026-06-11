@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Event } from "@/lib/types";
+import { OWNER_ID } from "@/lib/user";
 import { STATUS_LABELS, STATUS_COLORS, PURPOSE_LABELS, GRADE_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -14,13 +15,12 @@ export default async function EventsPage({
   searchParams: Promise<{ status?: string; purpose?: string }>;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
   const params = await searchParams;
 
   let query = supabase
     .from("events")
     .select("*")
-    .eq("user_id", user!.id)
+    .eq("user_id", OWNER_ID)
     .order("created_at", { ascending: false });
 
   if (params.status) query = query.eq("status", params.status);

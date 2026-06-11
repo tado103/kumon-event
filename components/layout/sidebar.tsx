@@ -2,15 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  CalendarDays,
-  Library,
-  Sparkles,
-  LogOut,
-} from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { LayoutDashboard, CalendarDays, Library, Sparkles } from "lucide-react";
 
 const NAV = [
   { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
@@ -20,17 +12,9 @@ const NAV = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function handleSignOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
 
   return (
     <aside className="hidden md:flex flex-col w-56 min-h-screen bg-white border-r border-stone-200 py-6 px-3 shrink-0">
-      {/* Logo */}
       <div className="flex items-center gap-2.5 px-3 mb-8">
         <div className="w-7 h-7 rounded-lg bg-teal-700 flex items-center justify-center">
           <Sparkles className="w-4 h-4 text-white" />
@@ -41,7 +25,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 flex flex-col gap-0.5">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
@@ -62,15 +45,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Sign out */}
-      <button
-        onClick={handleSignOut}
-        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-stone-500 hover:bg-stone-50 hover:text-stone-700 transition-colors"
-      >
-        <LogOut className="w-4 h-4" />
-        サインアウト
-      </button>
     </aside>
   );
 }

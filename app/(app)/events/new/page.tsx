@@ -6,6 +6,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { OWNER_ID } from "@/lib/user";
 import {
   PURPOSE_LABELS,
   GRADE_LABELS,
@@ -64,11 +65,10 @@ export default function NewEventPage() {
 
   async function handleAdopt(proposal: EventProposal) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from("events")
       .insert({
-        user_id: user!.id,
+        user_id: OWNER_ID,
         title: proposal.title,
         purpose,
         grade_targets: [grade],
@@ -101,10 +101,9 @@ export default function NewEventPage() {
 
   async function handleCreateBlank() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from("events")
-      .insert({ user_id: user!.id, status: "planning" })
+      .insert({ user_id: OWNER_ID, status: "planning" })
       .select()
       .single();
     if (error || !data) return alert("作成に失敗しました");
