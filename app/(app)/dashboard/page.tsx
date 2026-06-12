@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { CalendarDays, Clock, CheckCircle2, Plus, TrendingUp } from "lucide-react";
 import { OWNER_ID } from "@/lib/user";
+import { DashboardCalendar } from "@/components/dashboard-calendar";
 
 function EventCard({ event }: { event: Event }) {
   return (
@@ -93,6 +94,13 @@ export default async function DashboardPage() {
           <span className="hidden sm:inline">新規イベント</span>
         </Link>
       </div>
+
+      {/* Calendar */}
+      {allEvents.length > 0 && (
+        <div className="mb-8">
+          <DashboardCalendar events={allEvents} />
+        </div>
+      )}
 
       {/* Stats row */}
       {allEvents.length > 0 && (
