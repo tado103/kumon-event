@@ -150,7 +150,7 @@ export function EventEditor({ event: initial }: { event: Event }) {
     const res = await fetch("/api/ai/prep-tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event }),
+      body: JSON.stringify({ event, hint: prepHint }),
     });
     const data = await res.json();
     if (data.tasks) update("prep_tasks", data.tasks);
@@ -192,6 +192,7 @@ export function EventEditor({ event: initial }: { event: Event }) {
   }
 
   const [newTaskId, setNewTaskId] = useState<string | null>(null);
+  const [prepHint, setPrepHint] = useState("");
 
   function addPrepTask() {
     const id = crypto.randomUUID();
@@ -491,14 +492,14 @@ export function EventEditor({ event: initial }: { event: Event }) {
                 <span className="text-xs font-semibold text-stone-400 w-5">{idx + 1}</span>
                 <div className="flex-1 grid grid-cols-2 gap-2">
                   <input
+                    type="time"
                     className="text-sm px-2 py-1 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    placeholder="開始 例:10:00"
                     value={item.start_time}
                     onChange={(e) => updateTimelineItem(item.id, "start_time", e.target.value)}
                   />
                   <input
+                    type="time"
                     className="text-sm px-2 py-1 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    placeholder="終了 例:10:30"
                     value={item.end_time}
                     onChange={(e) => updateTimelineItem(item.id, "end_time", e.target.value)}
                   />
@@ -574,6 +575,18 @@ export function EventEditor({ event: initial }: { event: Event }) {
               <Sparkles className="w-3.5 h-3.5" />
               AIで生成
             </Button>
+          </div>
+
+          <div className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+            <p className="text-xs text-stone-500 mb-1.5">やりたいこと・締切（任意）</p>
+            <textarea
+              className="w-full text-sm bg-white border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-400 resize-none"
+              rows={2}
+              placeholder="例：7/15にポスティングを開始したい　例：8/1までにチラシを完成させたい"
+              value={prepHint}
+              onChange={(e) => setPrepHint(e.target.value)}
+            />
+            <p className="text-[11px] text-stone-400 mt-1">入力するとAIが逆算してタスクを生成します</p>
           </div>
 
           {[...(event.prep_tasks ?? [])].sort((a, b) => {

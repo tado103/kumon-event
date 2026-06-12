@@ -8,7 +8,7 @@ import { PrepTask } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const { event }: { event: Event } = await req.json();
+  const { event, hint }: { event: Event; hint?: string } = await req.json();
 
   const isExternal = event.audience_type === "external";
   const eventDate = event.event_date ? new Date(event.event_date) : null;
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
 ターゲット: ${AUDIENCE_LABELS[event.audience_type]}
 開催日: ${eventDate ? eventDate.toLocaleDateString("ja-JP") : "未定"}
 必要ツール: ${(event.required_tools ?? []).join(", ") || "なし"}
+${hint ? `\n特記事項（必ず考慮してください）: ${hint}\n上記の日程・やりたいことから逆算して、必要な前工程タスクも含めてください。` : ""}
 
 ${isExternal ? "外部向けイベントのため、チラシ・SNS告知・ポスティングも含めてください。" : "内部向けイベントです。"}
 
