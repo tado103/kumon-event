@@ -36,6 +36,8 @@ export interface PrepTask {
   id: string;
   title: string;
   deadline: string;
+  work_start: string;
+  work_end: string;
   assignee: string;
   completed: boolean;
   category: string;

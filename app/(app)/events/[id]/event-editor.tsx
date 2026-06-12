@@ -200,6 +200,8 @@ export function EventEditor({ event: initial }: { event: Event }) {
       id,
       title: "",
       deadline: "",
+      work_start: "",
+      work_end: "",
       assignee: "",
       completed: false,
       category: "",
@@ -625,13 +627,32 @@ export function EventEditor({ event: initial }: { event: Event }) {
                   onFocus={() => { if (task.id === newTaskId) setNewTaskId(null); }}
                   placeholder="タスク名"
                 />
-                <div className="flex gap-2 mt-1">
-                  <input
-                    type="date"
-                    className="text-xs text-stone-500 bg-transparent border-none outline-none"
-                    value={task.deadline}
-                    onChange={(e) => updatePrepTask(task.id, "deadline", e.target.value)}
-                  />
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
+                  <label className="flex items-center gap-1 text-xs text-stone-400">
+                    締切
+                    <input
+                      type="date"
+                      className="text-xs text-stone-500 bg-transparent border-none outline-none"
+                      value={task.deadline ?? ""}
+                      onChange={(e) => updatePrepTask(task.id, "deadline", e.target.value)}
+                    />
+                  </label>
+                  <label className="flex items-center gap-1 text-xs text-stone-400">
+                    やる日
+                    <input
+                      type="date"
+                      className="text-xs text-stone-500 bg-transparent border-none outline-none"
+                      value={task.work_start ?? ""}
+                      onChange={(e) => updatePrepTask(task.id, "work_start", e.target.value)}
+                    />
+                    <span className="text-stone-300">〜</span>
+                    <input
+                      type="date"
+                      className="text-xs text-stone-500 bg-transparent border-none outline-none"
+                      value={task.work_end ?? ""}
+                      onChange={(e) => updatePrepTask(task.id, "work_end", e.target.value)}
+                    />
+                  </label>
                 </div>
               </div>
               <button onClick={() => removePrepTask(task.id)}>
