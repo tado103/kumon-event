@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { CalendarDays, Clock, CheckCircle2, Plus, TrendingUp } from "lucide-react";
+import { CalendarDays, Clock, CheckCircle2, Plus, TrendingUp, ListTodo } from "lucide-react";
+import { differenceInDays } from "date-fns";
 import { OWNER_ID } from "@/lib/user";
 import { DashboardCalendar } from "@/components/dashboard-calendar";
 
@@ -67,6 +68,26 @@ export default async function DashboardPage() {
   const needsReview = allEvents.filter(
     (e) => e.status === "done" && !e.good_points
   );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 未完了タスクを締め切り順に集める（14日以内 or 締め切り超過）
+  const upcomingTasks = allEvents
+    .filter((e) => e.status !== "done")
+    .flatMap((e) =>
+      (e.prep_tasks ?? [])
+        .filter((t) => !t.completed && t.deadline)
+        .map((t) => ({
+          task: t,
+          eventId: e.id,
+          eventTitle: e.title || "タイトル未設定",
+          daysLeft: differenceInDays(new Date(t.deadline), today),
+        }))
+    )
+    .filter((t) => t.daysLeft <= 14)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+    .slice(0, 10);
+
   const recentSuccess = allEvents
     .filter((e) => e.status === "done" && e.rating)
     .sort((a, b) => {
@@ -100,6 +121,32 @@ export default async function DashboardPage() {
         <div className="mb-8">
           <DashboardCalendar events={allEvents} />
         </div>
+      )}
+
+      {/* Upcoming tasks */}
+      {upcomingTasks.length > 0 && (
+        <section className="mb-8">
+          <SectionTitle icon={ListTodo} title="直近のやること" />
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm divide-y divide-stone-100 overflow-hidden">
+            {upcomingTasks.map(({ task, eventId, eventTitle, daysLeft }) => (
+              <Link key={task.id} href={`/events/${eventId}?tab=prep`}>
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors">
+                  <div className={`shrink-0 w-1.5 h-1.5 rounded-full ${daysLeft < 0 ? "bg-red-400" : daysLeft <= 3 ? "bg-orange-400" : "bg-amber-400"}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-stone-800 line-clamp-1">{task.title}</p>
+                    <p className="text-xs text-stone-400 line-clamp-1">{eventTitle}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className={`text-xs font-medium ${daysLeft < 0 ? "text-red-500" : daysLeft <= 3 ? "text-orange-500" : "text-stone-400"}`}>
+                      {daysLeft < 0 ? `${Math.abs(daysLeft)}日超過` : daysLeft === 0 ? "今日" : `あと${daysLeft}日`}
+                    </p>
+                    <p className="text-[10px] text-stone-300">{format(new Date(task.deadline), "M/d", { locale: ja })}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Stats row */}
