@@ -12,6 +12,7 @@ interface CalendarEvent {
   title: string;
   eventTitle: string;
   type: "event" | "task";
+  label: string;
   eventId: string;
   color: string;
 }
@@ -34,17 +35,35 @@ export function DashboardCalendar({ events }: Props) {
         title: event.title || "タイトル未設定",
         eventTitle: event.title || "タイトル未設定",
         type: "event",
+        label: "本番",
         eventId: event.id,
         color: "bg-teal-500",
       });
     }
     (event.prep_tasks ?? []).forEach((task: PrepTask) => {
-      if (task.deadline && !task.completed) {
+      if (task.completed) return;
+      if (task.work_start) {
+        // 実行期間の各日にドットを表示
+        const start = new Date(task.work_start);
+        const end = task.work_end ? new Date(task.work_end) : start;
+        eachDayOfInterval({ start, end }).forEach((day) => {
+          items.push({
+            date: day,
+            title: task.title,
+            eventTitle: event.title || "タイトル未設定",
+            type: "task",
+            label: "実行日",
+            eventId: event.id,
+            color: "bg-blue-400",
+          });
+        });
+      } else if (task.deadline) {
         items.push({
           date: new Date(task.deadline),
           title: task.title,
           eventTitle: event.title || "タイトル未設定",
           type: "task",
+          label: "締切",
           eventId: event.id,
           color: "bg-amber-400",
         });
@@ -136,8 +155,12 @@ export function DashboardCalendar({ events }: Props) {
           <span className="text-[10px] text-stone-500">イベント本番</span>
         </div>
         <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-blue-400" />
+          <span className="text-[10px] text-stone-500">実行日</span>
+        </div>
+        <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-amber-400" />
-          <span className="text-[10px] text-stone-500">準備タスク締切</span>
+          <span className="text-[10px] text-stone-500">締切</span>
         </div>
       </div>
 
@@ -159,7 +182,7 @@ export function DashboardCalendar({ events }: Props) {
                     )}
                   </div>
                   <span className="text-[10px] text-stone-400 ml-auto shrink-0">
-                    {item.type === "event" ? "本番" : "締切"}
+                    {item.label}
                   </span>
                 </div>
               </Link>

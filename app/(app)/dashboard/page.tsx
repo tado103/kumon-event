@@ -72,19 +72,24 @@ export default async function DashboardPage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // 未完了タスクを締め切り順に集める（14日以内 or 締め切り超過）
+  // 未完了タスクを直近順に集める（実行日があればそちらを優先、なければ締め切り）
   const upcomingTasks = allEvents
     .filter((e) => e.status !== "done")
     .flatMap((e) =>
       (e.prep_tasks ?? [])
-        .filter((t) => !t.completed && t.deadline)
-        .map((t) => ({
-          task: t,
-          eventId: e.id,
-          eventTitle: e.title || "タイトル未設定",
-          daysLeft: differenceInDays(new Date(t.deadline), today),
-          allTasks: e.prep_tasks ?? [],
-        }))
+        .filter((t) => !t.completed && (t.work_start || t.deadline))
+        .map((t) => {
+          const refDate = t.work_start ?? t.deadline;
+          const daysLeft = differenceInDays(new Date(refDate), today);
+          return {
+            task: t,
+            eventId: e.id,
+            eventTitle: e.title || "タイトル未設定",
+            daysLeft,
+            isWorkDate: !!t.work_start,
+            allTasks: e.prep_tasks ?? [],
+          };
+        })
     )
     .filter((t) => t.daysLeft <= 14)
     .sort((a, b) => a.daysLeft - b.daysLeft)
