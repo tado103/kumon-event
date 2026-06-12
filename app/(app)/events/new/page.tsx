@@ -12,7 +12,7 @@ import { OWNER_ID } from "@/lib/user";
 import { Sparkles, ArrowRight, Wand2, Edit3, Lightbulb, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Mode = "choose" | "ai_propose" | "ai_propose_result" | "polish" | "idea";
+type Mode = "choose" | "ai_propose" | "ai_propose_result" | "polish" | "idea" | "blank";
 
 interface EventProposal {
   title: string;
@@ -146,13 +146,18 @@ export default function NewEventPage() {
     router.push(`/events/${data.id}`);
   }
 
+  const [blankTitle, setBlankTitle] = useState("");
+
   async function handleCreateBlank() {
+    if (!blankTitle.trim()) return alert("タイトルを入力してください");
+    setLoading(true);
     const supabase = createClient();
     const { data, error } = await supabase
       .from("events")
-      .insert({ user_id: OWNER_ID, status: "planning" })
+      .insert({ user_id: OWNER_ID, status: "planning", title: blankTitle.trim() })
       .select()
       .single();
+    setLoading(false);
     if (error || !data) return alert("作成に失敗しました: " + error?.message);
     router.push(`/events/${data.id}`);
   }
@@ -237,7 +242,7 @@ export default function NewEventPage() {
             </div>
           </Card>
 
-          <Card hoverable onClick={handleCreateBlank} className="p-5 cursor-pointer">
+          <Card hoverable onClick={() => setMode("blank")} className="p-5 cursor-pointer">
             <div className="flex flex-col gap-3">
               <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center">
                 <Edit3 className="w-5 h-5 text-stone-600" />
@@ -474,6 +479,32 @@ export default function NewEventPage() {
 
           <Button variant="primary" onClick={handleCreateIdea} disabled={!ideaTitle.trim()} className="w-full">
             メモとして保存
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- Blank ----
+  if (mode === "blank") {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 md:px-8">
+        <button onClick={() => setMode("choose")} className="text-sm text-stone-500 hover:text-stone-700 mb-6">← 戻る</button>
+        <h1 className="text-xl font-semibold text-stone-900 mb-6">ゼロから作成</h1>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-stone-700">イベント名・タイトル</label>
+            <input
+              className="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
+              value={blankTitle}
+              onChange={(e) => setBlankTitle(e.target.value)}
+              placeholder="例：夏の体験イベント"
+              autoFocus
+            />
+          </div>
+          <Button variant="primary" onClick={handleCreateBlank} loading={loading} disabled={!blankTitle.trim()} className="w-full">
+            作成して設計を始める
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
