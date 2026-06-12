@@ -206,6 +206,7 @@ export function EventEditor({ event: initial }: { event: Event }) {
       assignee: "",
       completed: false,
       category: "",
+      notes: "",
     };
     update("prep_tasks", [...(event.prep_tasks ?? []), task]);
     setNewTaskId(id);
