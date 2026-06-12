@@ -151,8 +151,7 @@ export function EventListClient({ initialEvents }: { initialEvents: Event[] }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs text-stone-400 text-right">← 左にスワイプで操作</p>
-      <div className="flex flex-col gap-0.5 rounded-xl overflow-hidden border border-stone-200">
+<div className="flex flex-col gap-0.5 rounded-xl overflow-hidden border border-stone-200">
         {events.map((event) => (
           <SwipeableEvent
             key={event.id}
