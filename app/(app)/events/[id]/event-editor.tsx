@@ -170,9 +170,12 @@ export function EventEditor({ event: initial }: { event: Event }) {
     update("timeline", (event.timeline ?? []).filter((item) => item.id !== id));
   }
 
+  const [newTaskId, setNewTaskId] = useState<string | null>(null);
+
   function addPrepTask() {
+    const id = crypto.randomUUID();
     const task: PrepTask = {
-      id: crypto.randomUUID(),
+      id,
       title: "",
       deadline: "",
       assignee: "",
@@ -180,6 +183,7 @@ export function EventEditor({ event: initial }: { event: Event }) {
       category: "",
     };
     update("prep_tasks", [...(event.prep_tasks ?? []), task]);
+    setNewTaskId(id);
   }
 
   function updatePrepTask(id: string, field: keyof PrepTask, value: unknown) {
@@ -526,7 +530,12 @@ export function EventEditor({ event: initial }: { event: Event }) {
             </Button>
           </div>
 
-          {(event.prep_tasks ?? []).map((task) => (
+          {[...(event.prep_tasks ?? [])].sort((a, b) => {
+            if (!a.deadline && !b.deadline) return 0;
+            if (!a.deadline) return 1;
+            if (!b.deadline) return -1;
+            return a.deadline.localeCompare(b.deadline);
+          }).map((task) => (
             <div
               key={task.id}
               className={cn(
@@ -547,12 +556,14 @@ export function EventEditor({ event: initial }: { event: Event }) {
               </button>
               <div className="flex-1 min-w-0">
                 <input
+                  autoFocus={task.id === newTaskId}
                   className={cn(
                     "w-full text-sm font-medium bg-transparent border-none outline-none",
                     task.completed && "line-through text-stone-400"
                   )}
                   value={task.title}
                   onChange={(e) => updatePrepTask(task.id, "title", e.target.value)}
+                  onFocus={() => { if (task.id === newTaskId) setNewTaskId(null); }}
                   placeholder="タスク名"
                 />
                 <div className="flex gap-2 mt-1">
