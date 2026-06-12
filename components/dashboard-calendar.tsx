@@ -10,6 +10,7 @@ import Link from "next/link";
 interface CalendarEvent {
   date: Date;
   title: string;
+  eventTitle: string;
   type: "event" | "task";
   eventId: string;
   color: string;
@@ -31,6 +32,7 @@ export function DashboardCalendar({ events }: Props) {
       items.push({
         date: new Date(event.event_date),
         title: event.title || "タイトル未設定",
+        eventTitle: event.title || "タイトル未設定",
         type: "event",
         eventId: event.id,
         color: "bg-teal-500",
@@ -41,6 +43,7 @@ export function DashboardCalendar({ events }: Props) {
         items.push({
           date: new Date(task.deadline),
           title: task.title,
+          eventTitle: event.title || "タイトル未設定",
           type: "task",
           eventId: event.id,
           color: "bg-amber-400",
@@ -149,7 +152,12 @@ export function DashboardCalendar({ events }: Props) {
               <Link key={i} href={`/events/${item.eventId}`}>
                 <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-stone-50 transition-colors">
                   <div className={cn("w-2 h-2 rounded-full shrink-0", item.color)} />
-                  <span className="text-xs text-stone-700 line-clamp-1">{item.title}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-stone-700 line-clamp-1">{item.title}</span>
+                    {item.type === "task" && (
+                      <span className="text-[10px] text-stone-400 block line-clamp-1">{item.eventTitle}</span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-stone-400 ml-auto shrink-0">
                     {item.type === "event" ? "本番" : "締切"}
                   </span>
