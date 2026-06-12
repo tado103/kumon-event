@@ -41,6 +41,7 @@ export interface PrepTask {
   assignee: string;
   completed: boolean;
   category: string;
+  notes: string;
 }
 
 export interface EventRating {
@@ -63,6 +64,7 @@ export interface Event {
   event_end_date: string | null;
   location: string;
   capacity: number | null;
+  target_attendance: number | null;
   required_tools: string[];
   goal: string;
   before_state: string;

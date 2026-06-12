@@ -69,6 +69,7 @@ export function EventEditor({ event: initial }: { event: Event }) {
         event_end_date: event.event_end_date,
         location: event.location,
         capacity: event.capacity,
+        target_attendance: event.target_attendance,
         required_tools: event.required_tools,
         goal: event.goal,
         before_state: event.before_state,
@@ -369,6 +370,16 @@ export function EventEditor({ event: initial }: { event: Event }) {
             />
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="目標集客数"
+              type="number"
+              value={event.target_attendance ?? ""}
+              onChange={(e) => update("target_attendance", e.target.value ? parseInt(e.target.value) : null)}
+              placeholder="20"
+            />
+          </div>
+
           <Textarea
             label="ゴール（一言）"
             value={event.goal}
@@ -530,20 +541,37 @@ export function EventEditor({ event: initial }: { event: Event }) {
                   value={item.detail}
                   onChange={(e) => updateTimelineItem(item.id, "detail", e.target.value)}
                 />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {(item.tools ?? []).map((tool, ti) => (
+                      <span key={ti} className="flex items-center gap-1 bg-stone-100 text-stone-700 text-xs px-2 py-0.5 rounded-full">
+                        {tool}
+                        <button onClick={() => updateTimelineItem(item.id, "tools", (item.tools ?? []).filter((_, j) => j !== ti))}>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
                   <input
-                    className="text-sm px-2 py-1.5 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    placeholder="必要ツール"
-                    value={item.tools?.join(", ") ?? ""}
-                    onChange={(e) => updateTimelineItem(item.id, "tools", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                  />
-                  <input
-                    className="text-sm px-2 py-1.5 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    placeholder="懸念事項"
-                    value={item.concerns}
-                    onChange={(e) => updateTimelineItem(item.id, "concerns", e.target.value)}
+                    className="w-full text-sm px-2 py-1.5 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                    placeholder="必要ツールを入力してEnter"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const val = (e.target as HTMLInputElement).value.trim();
+                        if (val) {
+                          updateTimelineItem(item.id, "tools", [...(item.tools ?? []), val]);
+                          (e.target as HTMLInputElement).value = "";
+                        }
+                      }
+                    }}
                   />
                 </div>
+                <input
+                  className="text-sm px-2 py-1.5 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                  placeholder="懸念事項"
+                  value={item.concerns}
+                  onChange={(e) => updateTimelineItem(item.id, "concerns", e.target.value)}
+                />
               </div>
             </div>
           ))}
@@ -659,6 +687,15 @@ export function EventEditor({ event: initial }: { event: Event }) {
                     />
                   </label>
                 </div>
+                <textarea
+                  className="w-full text-xs text-stone-600 bg-stone-50 rounded-lg px-2 py-1.5 mt-1.5 border border-stone-100 focus:outline-none focus:ring-1 focus:ring-teal-400 resize-none placeholder:text-stone-300"
+                  rows={task.notes ? Math.min(6, task.notes.split("\n").length + 1) : 1}
+                  placeholder="メモ・リンクなど（任意）"
+                  value={task.notes ?? ""}
+                  onChange={(e) => updatePrepTask(task.id, "notes", e.target.value)}
+                  onFocus={(e) => { if (!task.notes) e.target.rows = 3; }}
+                  onBlur={(e) => { if (!task.notes) e.target.rows = 1; }}
+                />
               </div>
               <button onClick={() => removePrepTask(task.id)}>
                 <X className="w-3.5 h-3.5 text-stone-300 hover:text-stone-500" />
