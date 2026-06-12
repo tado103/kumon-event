@@ -130,6 +130,21 @@ export function EventEditor({ event: initial }: { event: Event }) {
     setTab("analysis");
   }
 
+  async function generateGoalDesign() {
+    setAiLoading(true);
+    const res = await fetch("/api/ai/goal-design", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event }),
+    });
+    const data = await res.json();
+    if (data.before_state) update("before_state", data.before_state);
+    if (data.after_state) update("after_state", data.after_state);
+    if (data.ideal_feedback) update("ideal_feedback", data.ideal_feedback);
+    if (data.behavior_change) update("behavior_change", data.behavior_change);
+    setAiLoading(false);
+  }
+
   async function generatePrepTasks() {
     setAiLoading(true);
     const res = await fetch("/api/ai/prep-tasks", {
@@ -158,12 +173,18 @@ export function EventEditor({ event: initial }: { event: Event }) {
   }
 
   function updateTimelineItem(id: string, field: keyof TimelineItem, value: unknown) {
-    update(
-      "timeline",
-      (event.timeline ?? []).map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
+    const newTimeline = (event.timeline ?? []).map((item) =>
+      item.id === id ? { ...item, [field]: value } : item
     );
+    update("timeline", newTimeline);
+    if (field === "tools") {
+      const allTools = Array.from(new Set(
+        newTimeline.flatMap((item) => item.tools ?? []).filter(Boolean)
+      ));
+      const existing = event.required_tools ?? [];
+      const merged = Array.from(new Set([...existing, ...allTools]));
+      update("required_tools", merged);
+    }
   }
 
   function removeTimelineItem(id: string) {
@@ -380,6 +401,13 @@ export function EventEditor({ event: initial }: { event: Event }) {
       {/* Tab: Design */}
       {tab === "design" && (
         <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-stone-500">参加前後の変化を設計します</p>
+            <Button size="sm" variant="secondary" onClick={generateGoalDesign} loading={aiLoading}>
+              <Sparkles className="w-3.5 h-3.5" />
+              AIで草案を生成
+            </Button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-red-50 border border-red-100 rounded-xl p-4">
               <h3 className="text-sm font-semibold text-red-700 mb-1 flex items-center gap-1.5">
@@ -464,13 +492,13 @@ export function EventEditor({ event: initial }: { event: Event }) {
                 <div className="flex-1 grid grid-cols-2 gap-2">
                   <input
                     className="text-sm px-2 py-1 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    placeholder="開始"
+                    placeholder="開始 例:10:00"
                     value={item.start_time}
                     onChange={(e) => updateTimelineItem(item.id, "start_time", e.target.value)}
                   />
                   <input
                     className="text-sm px-2 py-1 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    placeholder="終了"
+                    placeholder="終了 例:10:30"
                     value={item.end_time}
                     onChange={(e) => updateTimelineItem(item.id, "end_time", e.target.value)}
                   />
@@ -523,7 +551,25 @@ export function EventEditor({ event: initial }: { event: Event }) {
       {tab === "prep" && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-stone-500">準備タスクを管理します</p>
+            <div className="flex items-center gap-3">
+              {(() => {
+                const tasks = event.prep_tasks ?? [];
+                const done = tasks.filter((t) => t.completed).length;
+                const total = tasks.length;
+                if (total === 0) return <p className="text-sm text-stone-500">準備タスクを管理します</p>;
+                return (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-stone-700">{done} / {total} 完了</span>
+                    <div className="w-24 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-teal-500 rounded-full transition-all"
+                        style={{ width: `${total ? (done / total) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
             <Button size="sm" variant="secondary" onClick={generatePrepTasks} loading={aiLoading}>
               <Sparkles className="w-3.5 h-3.5" />
               AIで生成
