@@ -333,19 +333,24 @@ export function EventEditor({ event: initial }: { event: Event }) {
             onChange={(e) => update("audience_type", e.target.value as AudienceType)}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="開始日時"
-              type="datetime-local"
-              value={event.event_date ? event.event_date.slice(0, 16) : ""}
-              onChange={(e) => update("event_date", e.target.value ? new Date(e.target.value).toISOString() : null)}
-            />
-            <Input
-              label="終了日時"
-              type="datetime-local"
-              value={event.event_end_date ? event.event_end_date.slice(0, 16) : ""}
-              onChange={(e) => update("event_end_date", e.target.value ? new Date(e.target.value).toISOString() : null)}
-            />
+          <div>
+            <label className="text-sm font-medium text-stone-700 block mb-2">開催期間</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
+                value={event.event_date ? event.event_date.slice(0, 10) : ""}
+                onChange={(e) => update("event_date", e.target.value ? e.target.value : null)}
+              />
+              <span className="text-stone-400 text-sm shrink-0">〜</span>
+              <input
+                type="date"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
+                value={event.event_end_date ? event.event_end_date.slice(0, 10) : ""}
+                onChange={(e) => update("event_end_date", e.target.value ? e.target.value : null)}
+              />
+            </div>
+            <p className="text-xs text-stone-400 mt-1">1日だけの場合は開始日のみ入力</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
